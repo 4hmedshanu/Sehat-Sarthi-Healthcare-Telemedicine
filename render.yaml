@@ -1,0 +1,43 @@
+services:
+  # 1. Eureka Discovery Server
+  - type: web
+    name: sehat-sarthi-register
+    env: docker
+    rootDir: sehat_sarthi_ragister
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8761
+
+  # 2. Backend Service
+  - type: web
+    name: backend-sehat-sarthi
+    env: docker
+    rootDir: backend_sehat_sarthi
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8081
+      - key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+        value: "https://sehat-sarthi-register.onrender.com/eureka/"
+      # Provide your MySQL credentials in the Render Dashboard
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+
+  # 3. Frontend Service
+  - type: web
+    name: sehat-sarthi-client
+    env: docker
+    rootDir: sehat_sarthi_
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+        value: "https://sehat-sarthi-register.onrender.com/eureka/"
+      - key: USER_SERVICE_URL
+        value: "https://backend-sehat-sarthi.onrender.com"
