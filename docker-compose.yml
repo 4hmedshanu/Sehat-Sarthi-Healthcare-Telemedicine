@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: shanu03
+      MYSQL_DATABASE: tele_Db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - telemedicine-net
+    restart: unless-stopped
+
+  eureka-server:
+    build:
+      context: ./sehat_sarthi_ragister
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - telemedicine-net
+    restart: unless-stopped
+
+  backend-api:
+    build:
+      context: ./backend_sehat_sarthi
+      dockerfile: Dockerfile
+    container_name: backend-api
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/tele_Db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=shanu03
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - mysql-db
+      - eureka-server
+    networks:
+      - telemedicine-net
+    restart: unless-stopped
+
+  frontend-client:
+    build:
+      context: ./sehat_sarthi_
+      dockerfile: Dockerfile
+    container_name: frontend-client
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - USER_SERVICE_URL=http://backend-api:8081
+    depends_on:
+      - eureka-server
+    networks:
+      - telemedicine-net
+    restart: unless-stopped
+
+networks:
+  telemedicine-net:
+
+volumes:
+  mysql-data:
